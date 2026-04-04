@@ -1,0 +1,116 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: quarkus-microservice
+  title: TradeFlow Quarkus Microservice
+  description: Quarkus 3.8 + Java 21 + Reactive Mutiny + Kafka SmallRye + PostgreSQL Reactive + OpenTelemetry
+  tags:
+    - java
+    - quarkus
+    - reactive
+    - kafka
+    - tradeflow
+spec:
+  owner: group:default/tradeflow-team
+  type: service
+
+  parameters:
+    - title: Service Information
+      required:
+        - serviceName
+        - description
+        - port
+      properties:
+        serviceName:
+          title: Service Name
+          type: string
+          description: e.g. payment-service
+          pattern: '^[a-z][a-z0-9-]*-service$'
+          ui:autofocus: true
+        description:
+          title: Description
+          type: string
+        port:
+          title: HTTP Port
+          type: integer
+          default: 8085
+
+    - title: Features
+      properties:
+        includeKafka:
+          title: Include Kafka (SmallRye Reactive)
+          type: boolean
+          default: true
+        includePostgres:
+          title: Include PostgreSQL Reactive + Flyway
+          type: boolean
+          default: true
+        includeMongoDB:
+          title: Include MongoDB Panache
+          type: boolean
+          default: false
+        includeRedis:
+          title: Include Redis
+          type: boolean
+          default: false
+        includeSecurity:
+          title: Include JWT Security
+          type: boolean
+          default: true
+        includeFaultTolerance:
+          title: Include Fault Tolerance (MicroProfile)
+          type: boolean
+          default: true
+
+    - title: Repository
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: GitHub Repository
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+  steps:
+    - id: fetch
+      name: Generate Files
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          serviceName: ${{ parameters.serviceName }}
+          description: ${{ parameters.description }}
+          port: ${{ parameters.port }}
+          includeKafka: ${{ parameters.includeKafka }}
+          includePostgres: ${{ parameters.includePostgres }}
+          includeMongoDB: ${{ parameters.includeMongoDB }}
+          includeRedis: ${{ parameters.includeRedis }}
+          includeSecurity: ${{ parameters.includeSecurity }}
+          includeFaultTolerance: ${{ parameters.includeFaultTolerance }}
+
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        allowedHosts: [github.com]
+        description: ${{ parameters.description }}
+        repoUrl: ${{ parameters.repoUrl }}
+        defaultBranch: main
+
+    - id: register
+      name: Register in Catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: /catalog-info.yaml
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Open in Catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}

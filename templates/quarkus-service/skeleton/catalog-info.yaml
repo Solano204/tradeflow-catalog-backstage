@@ -1,0 +1,17 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.serviceName }}
+  description: ${{ values.description }}
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - java
+    - quarkus
+    - reactive
+    - tradeflow
+spec:
+  type: service
+  lifecycle: production
+  owner: group:default/tradeflow-team
+  system: tradeflow
