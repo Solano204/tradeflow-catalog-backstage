@@ -1,0 +1,257 @@
+# ── KAFKA (shared by all 8 services) ──────────────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: kafka
+  title: Apache Kafka
+  description: |
+    23 topics: auth-events, identity.buyer-events, identity.merchant-events,
+    catalog.product-events, inventory.events, order.events, notifications,
+    cmd.reserve-inventory, cmd.confirm-inventory, cmd.release-inventory,
+    cmd.score-transaction, cmd.charge-payment, payment.events,
+    fraud.events, fraud.alerts, fraud.confirmed, dispute.events ...
+  links:
+    - url: http://localhost:8095
+      title: Kafka UI
+      icon: dashboard
+spec:
+  type: message-queue
+  owner: platform-team
+  system: tradeflow
+  lifecycle: production
+
+---
+# ── POSTGRES INSTANCES ────────────────────────────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: auth-postgres
+  description: PostgreSQL for Auth Service — port 5433
+spec:
+  type: database
+  owner: auth-team
+  system: tradeflow
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: identity-postgres
+  description: PostgreSQL for Identity Service — port 5434
+spec:
+  type: database
+  owner: identity-team
+  system: tradeflow
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: catalog-postgres
+  description: PostgreSQL for Catalog Service — port 5435
+spec:
+  type: database
+  owner: catalog-team
+  system: tradeflow
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: inventory-postgres
+  description: PostgreSQL for Inventory Service — port 5436
+spec:
+  type: database
+  owner: inventory-team
+  system: tradeflow
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: order-postgres
+  description: PostgreSQL for Order Service (event store) — port 5437
+spec:
+  type: database
+  owner: order-team
+  system: tradeflow
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: payment-postgres
+  description: PostgreSQL for Payment Service — port 5438
+spec:
+  type: database
+  owner: payment-team
+  system: tradeflow
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: fraud-postgres
+  description: PostgreSQL for Fraud Service (audit log) — port 5439
+spec:
+  type: database
+  owner: fraud-team
+  system: tradeflow
+  lifecycle: production
+
+---
+# ── MONGODB INSTANCES ─────────────────────────────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: identity-mongodb
+  description: MongoDB for Identity — buyer_profiles read model — port 27018
+spec:
+  type: database
+  owner: identity-team
+  system: tradeflow
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: catalog-mongodb
+  description: MongoDB for Catalog — product_details (flexible attributes) — port 27019
+spec:
+  type: database
+  owner: catalog-team
+  system: tradeflow
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: payment-mongodb
+  description: MongoDB for Payment — payment_audit (raw Stripe responses) — port 27021
+spec:
+  type: database
+  owner: payment-team
+  system: tradeflow
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: fraud-mongodb
+  description: MongoDB for Fraud — fraud_vectors (1536-dim embeddings), buyer_baselines, fraud_rules — port 27022
+spec:
+  type: database
+  owner: fraud-team
+  system: tradeflow
+  lifecycle: production
+
+---
+# ── REDIS INSTANCES ───────────────────────────────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: auth-redis
+  description: Redis for Auth — refresh tokens (rt: prefix, 30d TTL) — port 6379
+spec:
+  type: cache
+  owner: auth-team
+  system: tradeflow
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: identity-redis
+  description: Redis for Identity — buyer profile cache, merchant status cache — port 6380
+spec:
+  type: cache
+  owner: identity-team
+  system: tradeflow
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: catalog-redis
+  description: Redis for Catalog — top-1000 hot products pre-warmed, category tree — port 6381
+spec:
+  type: cache
+  owner: catalog-team
+  system: tradeflow
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: fraud-redis
+  description: Redis for Fraud — OFAC IP SET, suspicious IPs, merchant dispute rates — port 6383
+spec:
+  type: cache
+  owner: fraud-team
+  system: tradeflow
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: payment-redis
+  description: Redis for Payment — idempotency cache — port 6385
+spec:
+  type: cache
+  owner: payment-team
+  system: tradeflow
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: search-redis
+  description: Redis for Search — Circuit Breaker fallback top-1000 — port 6382
+spec:
+  type: cache
+  owner: search-team
+  system: tradeflow
+  lifecycle: production
+
+---
+# ── OTHER ─────────────────────────────────────────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: search-elasticsearch
+  description: Elasticsearch 8.12.2 — products index with edge NGram + BM25 — port 9200
+  links:
+    - url: http://localhost:5601
+      title: Kibana
+      icon: dashboard
+spec:
+  type: database
+  owner: search-team
+  system: tradeflow
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: s3
+  description: AWS S3 (LocalStack in dev) — product media, KYC documents — port 4566
+spec:
+  type: cloud-storage
+  owner: platform-team
+  system: tradeflow
+  lifecycle: production

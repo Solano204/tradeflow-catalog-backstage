@@ -1,0 +1,236 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: auth-api
+  title: Authentication API
+  description: JWT issuance, refresh token rotation, device revocation, token introspection
+  links:
+    - url: http://localhost:8080/swagger-ui
+      title: Swagger UI
+spec:
+  type: openapi
+  lifecycle: production
+  owner: auth-team
+  system: tradeflow
+  definition: |
+    openapi: "3.0.0"
+    info:
+      title: TradeFlow Auth API
+      version: "1.0.0"
+    paths:
+      /auth/login:
+        post:
+          summary: Login and issue JWT tokens
+      /auth/refresh:
+        post:
+          summary: Rotate refresh token
+      /auth/logout:
+        post:
+          summary: Revoke refresh token
+      /.well-known/jwks.json:
+        get:
+          summary: JWKS public key endpoint
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: order-api
+  title: Order API
+  description: SAGA-orchestrated order lifecycle — create, track, cancel, ship, deliver, return
+  links:
+    - url: http://localhost:8084/swagger-ui.html
+      title: Swagger UI
+spec:
+  type: openapi
+  lifecycle: production
+  owner: order-team
+  system: tradeflow
+  definition: |
+    openapi: "3.0.0"
+    info:
+      title: TradeFlow Order API
+      version: "1.0.0"
+    paths:
+      /orders:
+        post:
+          summary: Create order and begin SAGA
+      /orders/{orderId}:
+        get:
+          summary: Get order with SAGA timeline
+      /orders/{orderId}/cancel:
+        post:
+          summary: Cancel order
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: payment-api
+  title: Payment API
+  description: Reactive payment processing, refunds, disputes, dunning
+  links:
+    - url: http://localhost:8085/q/swagger-ui
+      title: Swagger UI
+spec:
+  type: openapi
+  lifecycle: production
+  owner: payment-team
+  system: tradeflow
+  definition: |
+    openapi: "3.0.0"
+    info:
+      title: TradeFlow Payment API
+      version: "1.0.0"
+    paths:
+      /payments/charge:
+        post:
+          summary: Charge buyer — idempotent
+      /payments/refund:
+        post:
+          summary: Issue refund
+      /payments/{orderId}:
+        get:
+          summary: Get payment status
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: fraud-api
+  title: Fraud Detection API
+  description: ML + rule engine scoring, buyer profiles, live rule management, feedback loop
+  links:
+    - url: http://localhost:8087/swagger-ui.html
+      title: Swagger UI
+spec:
+  type: openapi
+  lifecycle: production
+  owner: fraud-team
+  system: tradeflow
+  definition: |
+    openapi: "3.0.0"
+    info:
+      title: TradeFlow Fraud API
+      version: "1.0.0"
+    paths:
+      /fraud/score:
+        post:
+          summary: Score transaction
+      /fraud/rules:
+        get:
+          summary: List active rules
+        post:
+          summary: Create rule (no redeployment)
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: search-api
+  title: Search API
+  description: Elasticsearch full-text search, autocomplete, similar products, category browse
+  links:
+    - url: http://localhost:8089/swagger-ui.html
+      title: Swagger UI
+spec:
+  type: openapi
+  lifecycle: production
+  owner: search-team
+  system: tradeflow
+  definition: |
+    openapi: "3.0.0"
+    info:
+      title: TradeFlow Search API
+      version: "1.0.0"
+    paths:
+      /search/products:
+        get:
+          summary: Full-text search with facets
+      /search/autocomplete:
+        get:
+          summary: Sub-50ms prefix suggestions
+      /search/products/{id}/similar:
+        get:
+          summary: More Like This recommendations
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: inventory-api
+  title: Inventory API
+  description: Two-phase reserve/confirm/release stock management
+spec:
+  type: openapi
+  lifecycle: production
+  owner: inventory-team
+  system: tradeflow
+  definition: |
+    openapi: "3.0.0"
+    info:
+      title: TradeFlow Inventory API
+      version: "1.0.0"
+    paths:
+      /inventory/{productId}/reserve:
+        post:
+          summary: Phase 1 — reserve stock
+      /inventory/{productId}/confirm:
+        post:
+          summary: Phase 2a — confirm after payment
+      /inventory/{productId}/release:
+        post:
+          summary: Phase 2b — compensation path
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: catalog-api
+  title: Catalog API
+  description: Product listings, pricing, categories, media management
+spec:
+  type: openapi
+  lifecycle: production
+  owner: catalog-team
+  system: tradeflow
+  definition: |
+    openapi: "3.0.0"
+    info:
+      title: TradeFlow Catalog API
+      version: "1.0.0"
+    paths:
+      /products:
+        post:
+          summary: Create product listing
+      /products/{id}:
+        get:
+          summary: Get product detail
+      /categories:
+        get:
+          summary: Get full category tree
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: identity-api
+  title: Identity API
+  description: Buyer registration, merchant KYC onboarding, admin management
+spec:
+  type: openapi
+  lifecycle: production
+  owner: identity-team
+  system: tradeflow
+  definition: |
+    openapi: "3.0.0"
+    info:
+      title: TradeFlow Identity API
+      version: "1.0.0"
+    paths:
+      /buyers/register:
+        post:
+          summary: Register buyer
+      /merchants/onboard:
+        post:
+          summary: Begin merchant KYC

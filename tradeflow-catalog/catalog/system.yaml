@@ -1,0 +1,108 @@
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: tradeflow
+  title: TradeFlow Platform
+  description: |
+    Distributed e-commerce marketplace. 8 microservices coordinated via
+    Kafka SAGA pattern. Mixed Quarkus (Auth, Payment) and Spring Boot stack.
+    Full distributed tracing via Zipkin. PostgreSQL + MongoDB + Redis + Elasticsearch.
+  tags:
+    - microservices
+    - kafka
+    - spring-boot
+    - quarkus
+    - e-commerce
+spec:
+  owner: platform-team
+  domain: tradeflow
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: platform-team
+  description: TradeFlow platform infrastructure team
+spec:
+  type: team
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: auth-team
+spec:
+  type: team
+  parent: platform-team
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: order-team
+spec:
+  type: team
+  parent: platform-team
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: payment-team
+spec:
+  type: team
+  parent: platform-team
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: fraud-team
+spec:
+  type: team
+  parent: platform-team
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: catalog-team
+spec:
+  type: team
+  parent: platform-team
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: inventory-team
+spec:
+  type: team
+  parent: platform-team
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: identity-team
+spec:
+  type: team
+  parent: platform-team
+  children: []
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: search-team
+spec:
+  type: team
+  parent: platform-team
+  children: []

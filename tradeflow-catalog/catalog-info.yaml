@@ -1,0 +1,327 @@
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: tradeflow-root
+  description: TradeFlow microservices catalog root
+spec:
+  targets:
+    - ./catalog/system.yaml
+    - ./catalog/resources.yaml
+    - ./catalog/api.yaml
+
+---
+# AUTH SERVICE
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: auth-service
+  title: Auth Service
+  description: JWT issuance (RS256), refresh token rotation, JWKS endpoint, Okta SSO, MFA (TOTP). Built with Quarkus 3.6.4.
+  tags:
+    - java
+    - quarkus
+    - oauth2
+    - jwt
+    - oidc
+  annotations:
+    github.com/project-slug: Solano204/tradeflow-catalog
+    backstage.io/techdocs-ref: dir:.
+  links:
+    - url: http://localhost:8080/swagger-ui
+      title: Swagger UI
+      icon: web
+    - url: http://localhost:8080/.well-known/jwks.json
+      title: JWKS Endpoint
+      icon: api
+    - url: http://localhost:9411/zipkin/?serviceName=tradeflow-auth-service
+      title: Traces (Zipkin)
+      icon: dashboard
+spec:
+  type: service
+  lifecycle: production
+  owner: auth-team
+  system: tradeflow
+  providesApis:
+    - auth-api
+    - jwks-api
+  dependsOn:
+    - resource:auth-postgres
+    - resource:auth-redis
+    - resource:kafka
+
+---
+# IDENTITY SERVICE
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: identity-service
+  title: Identity Service
+  description: Buyer registration, KYC merchant onboarding, admin management. CQRS with PostgreSQL + MongoDB. Virtual Threads.
+  tags:
+    - java
+    - spring-boot
+    - cqrs
+    - kyc
+    - mongodb
+  annotations:
+    github.com/project-slug: Solano204/tradeflow-catalog
+    backstage.io/techdocs-ref: dir:.
+  links:
+    - url: http://localhost:8081/swagger-ui.html
+      title: Swagger UI
+      icon: web
+    - url: http://localhost:9411/zipkin/?serviceName=identity-service
+      title: Traces (Zipkin)
+      icon: dashboard
+spec:
+  type: service
+  lifecycle: production
+  owner: identity-team
+  system: tradeflow
+  providesApis:
+    - identity-api
+  consumesApis:
+    - auth-api
+  dependsOn:
+    - resource:identity-postgres
+    - resource:identity-mongodb
+    - resource:identity-redis
+    - resource:kafka
+
+---
+# CATALOG SERVICE
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: catalog-service
+  title: Catalog Service
+  description: Product listings, pricing (FIXED/TIERED/PROMOTIONAL), campaign engine, dual DB (PostgreSQL + MongoDB), Redis pre-warming.
+  tags:
+    - java
+    - spring-boot
+    - mongodb
+    - redis
+    - s3
+  annotations:
+    github.com/project-slug: Solano204/tradeflow-catalog
+    backstage.io/techdocs-ref: dir:.
+  links:
+    - url: http://localhost:8082/swagger-ui.html
+      title: Swagger UI
+      icon: web
+    - url: http://localhost:9411/zipkin/?serviceName=catalog-service
+      title: Traces (Zipkin)
+      icon: dashboard
+spec:
+  type: service
+  lifecycle: production
+  owner: catalog-team
+  system: tradeflow
+  providesApis:
+    - catalog-api
+  consumesApis:
+    - auth-api
+    - identity-api
+  dependsOn:
+    - resource:catalog-postgres
+    - resource:catalog-mongodb
+    - resource:catalog-redis
+    - resource:kafka
+    - resource:s3
+
+---
+# INVENTORY SERVICE
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: inventory-service
+  title: Inventory Service
+  description: Two-phase reserve/confirm/release, @Version optimistic locking, TTL cleanup. PostgreSQL only.
+  tags:
+    - java
+    - spring-boot
+    - optimistic-locking
+    - two-phase
+  annotations:
+    github.com/project-slug: Solano204/tradeflow-catalog
+    backstage.io/techdocs-ref: dir:.
+  links:
+    - url: http://localhost:8083/swagger-ui.html
+      title: Swagger UI
+      icon: web
+    - url: http://localhost:9411/zipkin/?serviceName=inventory-service
+      title: Traces (Zipkin)
+      icon: dashboard
+spec:
+  type: service
+  lifecycle: production
+  owner: inventory-team
+  system: tradeflow
+  providesApis:
+    - inventory-api
+  consumesApis:
+    - auth-api
+    - catalog-api
+  dependsOn:
+    - resource:inventory-postgres
+    - resource:kafka
+
+---
+# ORDER SERVICE
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: order-service
+  title: Order Service
+  description: SAGA orchestrator with event sourcing. Coordinates Inventory → Fraud → Payment. Self-healing recovery scheduler.
+  tags:
+    - java
+    - spring-boot
+    - saga
+    - event-sourcing
+    - kafka
+  annotations:
+    github.com/project-slug: Solano204/tradeflow-catalog
+    backstage.io/techdocs-ref: dir:.
+  links:
+    - url: http://localhost:8084/swagger-ui.html
+      title: Swagger UI
+      icon: web
+    - url: http://localhost:9411/zipkin/?serviceName=order-service
+      title: Traces (Zipkin)
+      icon: dashboard
+spec:
+  type: service
+  lifecycle: production
+  owner: order-team
+  system: tradeflow
+  providesApis:
+    - order-api
+  consumesApis:
+    - auth-api
+    - inventory-api
+    - fraud-api
+    - payment-api
+  dependsOn:
+    - resource:order-postgres
+    - resource:kafka
+
+---
+# PAYMENT SERVICE
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: payment-service
+  title: Payment Service
+  description: Reactive Quarkus payment processing. Stripe integration (mock mode), idempotency, dunning engine, dispute management.
+  tags:
+    - java
+    - quarkus
+    - reactive
+    - stripe
+    - mutiny
+  annotations:
+    github.com/project-slug: Solano204/tradeflow-catalog
+    backstage.io/techdocs-ref: dir:.
+  links:
+    - url: http://localhost:8085/q/swagger-ui
+      title: Swagger UI
+      icon: web
+    - url: http://localhost:9411/zipkin/?serviceName=payment-service
+      title: Traces (Zipkin)
+      icon: dashboard
+spec:
+  type: service
+  lifecycle: production
+  owner: payment-team
+  system: tradeflow
+  providesApis:
+    - payment-api
+  consumesApis:
+    - auth-api
+  dependsOn:
+    - resource:payment-postgres
+    - resource:payment-mongodb
+    - resource:payment-redis
+    - resource:kafka
+
+---
+# FRAUD SERVICE
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: fraud-service
+  title: Fraud Detection Service
+  description: Spring AI embeddings + MongoDB Atlas Vector Search. Live rule engine (no redeployment). Weekly model retraining via Spring Batch.
+  tags:
+    - java
+    - spring-boot
+    - spring-ai
+    - vector-search
+    - mongodb
+    - machine-learning
+  annotations:
+    github.com/project-slug: Solano204/tradeflow-catalog
+    backstage.io/techdocs-ref: dir:.
+  links:
+    - url: http://localhost:8087/swagger-ui.html
+      title: Swagger UI
+      icon: web
+    - url: http://localhost:9411/zipkin/?serviceName=fraud-service
+      title: Traces (Zipkin)
+      icon: dashboard
+spec:
+  type: service
+  lifecycle: production
+  owner: fraud-team
+  system: tradeflow
+  providesApis:
+    - fraud-api
+  consumesApis:
+    - auth-api
+    - order-api
+    - payment-api
+  dependsOn:
+    - resource:fraud-postgres
+    - resource:fraud-mongodb
+    - resource:fraud-redis
+    - resource:kafka
+
+---
+# SEARCH SERVICE
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: search-service
+  title: Search Service
+  description: Elasticsearch BM25 + function score + edge NGram autocomplete. Kafka-driven index sync. Circuit Breaker with Redis fallback.
+  tags:
+    - java
+    - spring-boot
+    - elasticsearch
+    - redis
+    - kafka
+  annotations:
+    github.com/project-slug: Solano204/tradeflow-catalog
+    backstage.io/techdocs-ref: dir:.
+  links:
+    - url: http://localhost:8089/swagger-ui.html
+      title: Swagger UI
+      icon: web
+    - url: http://localhost:9411/zipkin/?serviceName=search-service
+      title: Traces (Zipkin)
+      icon: dashboard
+spec:
+  type: service
+  lifecycle: production
+  owner: search-team
+  system: tradeflow
+  providesApis:
+    - search-api
+  consumesApis:
+    - auth-api
+    - catalog-api
+  dependsOn:
+    - resource:search-elasticsearch
+    - resource:search-redis
+    - resource:kafka
