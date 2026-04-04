@@ -1,0 +1,93 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: spring-boot-service
+  title: Spring Boot Microservice
+  description: Creates a new Spring Boot microservice for Neobank
+  tags:
+    - java
+    - spring-boot
+    - neobank
+spec:
+  owner: group:default/team-neobank
+  type: service
+
+  parameters:
+    - title: Service Info
+      required:
+        - name
+        - description
+      properties:
+        name:
+          title: Service Name
+          type: string
+          description: Name of the new microservice (e.g. neobank-payment-service)
+        description:
+          title: Description
+          type: string
+        port:
+          title: Port
+          type: integer
+          default: 8080
+
+    - title: Owner
+      required:
+        - owner
+      properties:
+        owner:
+          title: Owner
+          type: string
+          ui:field: OwnerPicker
+          ui:options:
+            allowedKinds:
+              - Group
+
+    - title: Repository
+      required:
+        - destination
+      properties:
+        destination:
+          title: GitHub Repository
+          type: object
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+  steps:
+    - id: fetch
+      name: Fetch Template
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          name: ${{ parameters.name }}
+          description: ${{ parameters.description }}
+          destination: ${{ parameters.destination }}
+          owner: ${{ parameters.owner }}
+          port: ${{ parameters.port }}
+
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        allowedHosts:
+          - github.com
+        description: ${{ parameters.description }}
+        repoUrl: ${{ parameters.destination }}
+        defaultBranch: main
+
+    - id: register
+      name: Register in Catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: /catalog-info.yaml
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Open in Catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
